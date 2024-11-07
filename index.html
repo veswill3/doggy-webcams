@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <title>Doggy Webcams</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: black;
+        margin: 0;
+        padding: 0;
+      }
+
+      #container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      #container div {
+        position: relative;
+        background-color: black;
+        width: 20%;
+        box-sizing: border-box;
+      }
+
+      #container h5 {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        padding: 5px;
+        margin: 0;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+
+      #container video {
+        width: 100%;
+        height: 100%;
+      }
+
+      #size-switcher {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+      }
+
+      #size-switcher:hover {
+        background-color: lightgray;
+        transform: scale(1.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <button id="size-switcher">🔍</button>
+    <script>
+      const container = document.getElementById('container');
+      const videoInfo = [
+        {
+          name: 'Littles 1',
+          url: 'https://s97.ipcamlive.com/streams/61mt7uwkbld0oxsr3/stream.m3u8',
+        },
+        {
+          name: 'Littles Outdoor',
+          url: 'https://s94.ipcamlive.com/streams/5ebcgvylwdtugsnek/stream.m3u8',
+        },
+        {
+          name: 'Backyard',
+          url: 'https://s65.ipcamlive.com/streams/41mvpsfk2qky84ehd/stream.m3u8',
+        },
+        {
+          name: 'Back Yard 2',
+          url: 'https://s67.ipcamlive.com/streams/43fgan2mrjr9ybhm5/stream.m3u8',
+        },
+        {
+          name: 'Blue Indoor',
+          url: 'https://s79.ipcamlive.com/streams/4fquypata5urehsnk/stream.m3u8',
+        },
+        {
+          name: 'Blue Outdoor',
+          url: 'https://s83.ipcamlive.com/streams/53tojdcw2ap71egvk/stream.m3u8',
+        },
+        {
+          name: 'Green Indoor',
+          url: 'https://s106.ipcamlive.com/streams/6ainrbwc5xuatfkqv/stream.m3u8',
+        },
+        {
+          name: 'Green Outdoor',
+          url: 'https://s80.ipcamlive.com/streams/50lpicxe953ngxbre/stream.m3u8',
+        },
+        {
+          name: 'Yellow Indoor',
+          url: 'https://s66.ipcamlive.com/streams/42pwiyloty6sbdndr/stream.m3u8',
+        },
+        {
+          name: 'Yellow Outdoor',
+          url: 'https://s85.ipcamlive.com/streams/55wxfcz4d3t08hurx/stream.m3u8',
+        },
+        {
+          name: 'New Indoor Play Area 1',
+          url: 'https://s85.ipcamlive.com/streams/553cfpkqrrlzgb86o/stream.m3u8',
+        },
+        {
+          name: 'Littles 2',
+          url: 'https://s78.ipcamlive.com/streams/4etyuxpmbfqgil4rb/stream.m3u8',
+        },
+        {
+          name: 'Littles Outdoor 2',
+          url: 'https://s23.ipcamlive.com/streams/17monrjjlddy9glwe/stream.m3u8',
+        },
+        {
+          name: 'New Outdoor Play Area 1',
+          url: 'https://s23.ipcamlive.com/streams/1705c3x1bxhwtyqpa/stream.m3u8',
+        },
+        {
+          name: 'New Outdoor Play Area 2',
+          url: 'https://s94.ipcamlive.com/streams/5epzxwkqnbsdupd6v/stream.m3u8',
+        },
+      ];
+
+      videoInfo.forEach(({ name, url }, index) => {
+        const webcam = document.createElement('div');
+        const title = document.createElement('h5');
+        title.textContent = name;
+        webcam.appendChild(title);
+        const video = document.createElement('video');
+        video.id = `video${index}`;
+        video.controls = true;
+        video.autoplay = true;
+        video.muted = true;
+        webcam.appendChild(video);
+        container.appendChild(webcam);
+
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+          video.addEventListener('loadedmetadata', () => video.play());
+        }
+      });
+
+      const sizeSwitcher = document.getElementById('size-switcher');
+      const sizes = ['20%', '25%', '33.33%', '50%', '100%'];
+      let currentSizeIndex = 0;
+
+      // detect if we are on mobile and set the size to 100% of width
+      if (window.innerWidth <= 600) {
+        currentSizeIndex = sizes.length - 1;
+        document.querySelectorAll('#container div').forEach((div) => {
+          div.style.width = sizes[currentSizeIndex];
+        });
+      }
+
+      sizeSwitcher.addEventListener('click', () => {
+        currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+        const newSize = sizes[currentSizeIndex];
+        document.querySelectorAll('#container div').forEach((div) => {
+          div.style.width = newSize;
+        });
+      });
+    </script>
+  </body>
+</html>
