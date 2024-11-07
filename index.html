@@ -127,8 +127,11 @@
         );
 
         responses.forEach((response, index) => {
-          const address = response.details.address;
-          const streamid = response.details.streamid;
+          let address = response.details.address; // like http://s97.ipcamlive.com/
+          if (address.startsWith('http://')) {
+            address = address.replace('http://', 'https://');
+          }
+          const streamid = response.details.streamid; // like 61mt7uwkbld0oxsr3
           const name = videoInfo[index].name;
           const url = `${address}streams/${streamid}/stream.m3u8`;
           const webcam = document.createElement('div');
