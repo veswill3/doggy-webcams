@@ -156,22 +156,21 @@
 
         const sizeSwitcher = document.getElementById('size-switcher');
         const sizes = ['20%', '25%', '33.33%', '50%', '100%'];
-        let currentSizeIndex = 0;
-
-        // detect if we are on mobile and set the size to 100% of width
-        if (window.innerWidth <= 600) {
-          currentSizeIndex = sizes.length - 1;
-          document.querySelectorAll('#container div').forEach((div) => {
-            div.style.width = sizes[currentSizeIndex];
-          });
-        }
-
+        let currentSizeIndex = parseInt(
+          localStorage.getItem('currentSizeIndex') || 0,
+        );
+        // Set initial size
+        document.querySelectorAll('#container div').forEach((div) => {
+          div.style.width = sizes[currentSizeIndex];
+        });
+        // Switch size on click
         sizeSwitcher.addEventListener('click', () => {
           currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
           const newSize = sizes[currentSizeIndex];
           document.querySelectorAll('#container div').forEach((div) => {
             div.style.width = newSize;
           });
+          localStorage.setItem('currentSizeIndex', currentSizeIndex);
         });
 
         document.getElementById('loading-spinner').style.display = 'none';
