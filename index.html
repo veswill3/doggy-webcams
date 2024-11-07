@@ -14,6 +14,13 @@
         padding: 0;
       }
 
+      #loading-spinner {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
       #container {
         display: flex;
         flex-wrap: wrap;
@@ -63,116 +70,114 @@
     </style>
   </head>
   <body>
+    <div id="loading-spinner">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle
+          cx="50"
+          cy="50"
+          r="45"
+          stroke="white"
+          stroke-width="10"
+          fill="none"
+          stroke-linecap="round"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            values="0;502.4"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-dasharray"
+            values="150.6 100.4;1 250"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+        </circle>
+      </svg>
+    </div>
     <div id="container"></div>
     <button id="size-switcher">🔍</button>
     <script>
       const container = document.getElementById('container');
       const videoInfo = [
-        {
-          name: 'Littles 1',
-          url: 'https://s97.ipcamlive.com/streams/61mt7uwkbld0oxsr3/stream.m3u8',
-        },
-        {
-          name: 'Littles Outdoor',
-          url: 'https://s94.ipcamlive.com/streams/5ebcgvylwdtugsnek/stream.m3u8',
-        },
-        {
-          name: 'Backyard',
-          url: 'https://s65.ipcamlive.com/streams/41mvpsfk2qky84ehd/stream.m3u8',
-        },
-        {
-          name: 'Back Yard 2',
-          url: 'https://s67.ipcamlive.com/streams/43fgan2mrjr9ybhm5/stream.m3u8',
-        },
-        {
-          name: 'Blue Indoor',
-          url: 'https://s79.ipcamlive.com/streams/4fquypata5urehsnk/stream.m3u8',
-        },
-        {
-          name: 'Blue Outdoor',
-          url: 'https://s83.ipcamlive.com/streams/53tojdcw2ap71egvk/stream.m3u8',
-        },
-        {
-          name: 'Green Indoor',
-          url: 'https://s106.ipcamlive.com/streams/6ainrbwc5xuatfkqv/stream.m3u8',
-        },
-        {
-          name: 'Green Outdoor',
-          url: 'https://s80.ipcamlive.com/streams/50lpicxe953ngxbre/stream.m3u8',
-        },
-        {
-          name: 'Yellow Indoor',
-          url: 'https://s66.ipcamlive.com/streams/42pwiyloty6sbdndr/stream.m3u8',
-        },
-        {
-          name: 'Yellow Outdoor',
-          url: 'https://s85.ipcamlive.com/streams/55wxfcz4d3t08hurx/stream.m3u8',
-        },
-        {
-          name: 'New Indoor Play Area 1',
-          url: 'https://s85.ipcamlive.com/streams/553cfpkqrrlzgb86o/stream.m3u8',
-        },
-        {
-          name: 'Littles 2',
-          url: 'https://s78.ipcamlive.com/streams/4etyuxpmbfqgil4rb/stream.m3u8',
-        },
-        {
-          name: 'Littles Outdoor 2',
-          url: 'https://s23.ipcamlive.com/streams/17monrjjlddy9glwe/stream.m3u8',
-        },
-        {
-          name: 'New Outdoor Play Area 1',
-          url: 'https://s23.ipcamlive.com/streams/1705c3x1bxhwtyqpa/stream.m3u8',
-        },
-        {
-          name: 'New Outdoor Play Area 2',
-          url: 'https://s94.ipcamlive.com/streams/5epzxwkqnbsdupd6v/stream.m3u8',
-        },
+        { name: 'Littles 1', alias: '5fecbd7a223f1' },
+        { name: 'Littles Outdoor', alias: '613920c688793' },
+        { name: 'Backyard', alias: '613930cbaccb4' },
+        { name: 'Back Yard 2', alias: '6157756f32665' },
+        { name: 'Blue Indoor', alias: '6034428bd581c' },
+        { name: 'Blue Outdoor', alias: '61577db66b280' },
+        { name: 'Green Indoor', alias: '6034345d4a617' },
+        { name: 'Green Outdoor', alias: '61393b5823df9' },
+        { name: 'Yellow Indoor', alias: '637677aa5604f' },
+        { name: 'Yellow Outdoor', alias: '6034433892099' },
+        { name: 'New Indoor Play Area 1', alias: '66e8731f213d4' },
+        { name: 'Littles 2', alias: '5fecbb304c905' },
+        { name: 'Littles Outdoor 2', alias: '637679221c11f' },
+        { name: 'New Outdoor Play Area 1', alias: '66e8753edce8d' },
+        { name: 'New Outdoor Play Area 2', alias: '66e8745113c9e' },
       ];
 
-      videoInfo.forEach(({ name, url }, index) => {
-        const webcam = document.createElement('div');
-        const title = document.createElement('h5');
-        title.textContent = name;
-        webcam.appendChild(title);
-        const video = document.createElement('video');
-        video.id = `video${index}`;
-        video.controls = true;
-        video.autoplay = true;
-        video.muted = true;
-        webcam.appendChild(video);
-        container.appendChild(webcam);
+      async function createVideos() {
+        const responses = await Promise.all(
+          videoInfo.map(({ alias }) => {
+            const url = `https://player.ipcamlive.com/player/getcamerastreamstate.php?_=${Date.now()}&token=&alias=${alias}&targetdomain=onlinedoggy.com&getstreaminfo=1`;
+            return fetch(url).then((response) => response.json());
+          }),
+        );
 
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          hls.loadSource(url);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-          video.src = url;
-          video.addEventListener('loadedmetadata', () => video.play());
-        }
-      });
+        responses.forEach((response, index) => {
+          const address = response.details.address;
+          const streamid = response.details.streamid;
+          const name = videoInfo[index].name;
+          const url = `${address}streams/${streamid}/stream.m3u8`;
+          const webcam = document.createElement('div');
+          const title = document.createElement('h5');
+          title.textContent = name;
+          webcam.appendChild(title);
+          const video = document.createElement('video');
+          video.id = `video${index}`;
+          video.controls = true;
+          video.autoplay = true;
+          video.muted = true;
+          webcam.appendChild(video);
+          container.appendChild(webcam);
 
-      const sizeSwitcher = document.getElementById('size-switcher');
-      const sizes = ['20%', '25%', '33.33%', '50%', '100%'];
-      let currentSizeIndex = 0;
-
-      // detect if we are on mobile and set the size to 100% of width
-      if (window.innerWidth <= 600) {
-        currentSizeIndex = sizes.length - 1;
-        document.querySelectorAll('#container div').forEach((div) => {
-          div.style.width = sizes[currentSizeIndex];
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(url);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = url;
+            video.addEventListener('loadedmetadata', () => video.play());
+          }
         });
+
+        const sizeSwitcher = document.getElementById('size-switcher');
+        const sizes = ['20%', '25%', '33.33%', '50%', '100%'];
+        let currentSizeIndex = 0;
+
+        // detect if we are on mobile and set the size to 100% of width
+        if (window.innerWidth <= 600) {
+          currentSizeIndex = sizes.length - 1;
+          document.querySelectorAll('#container div').forEach((div) => {
+            div.style.width = sizes[currentSizeIndex];
+          });
+        }
+
+        sizeSwitcher.addEventListener('click', () => {
+          currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
+          const newSize = sizes[currentSizeIndex];
+          document.querySelectorAll('#container div').forEach((div) => {
+            div.style.width = newSize;
+          });
+        });
+
+        document.getElementById('loading-spinner').style.display = 'none';
       }
 
-      sizeSwitcher.addEventListener('click', () => {
-        currentSizeIndex = (currentSizeIndex + 1) % sizes.length;
-        const newSize = sizes[currentSizeIndex];
-        document.querySelectorAll('#container div').forEach((div) => {
-          div.style.width = newSize;
-        });
-      });
+      createVideos();
     </script>
   </body>
 </html>
